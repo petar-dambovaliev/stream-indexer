@@ -159,224 +159,23 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn crash_index() {
-        let trie_terms = make_stream(vec!["TNF-α", "α-Blocker", "asd", "qwe", "qsdqsdqd"]);
-        let (reader, writer) = IndexBuilder::new(2, trie_terms).build();
+    async fn full_match() {
+        let trie_terms = make_stream(vec!["peter", "john", "eric", "johnson"]);
+        let (reader, writer) = IndexBuilder::new(4, trie_terms).build();
 
         let (write_future, cancel) = writer.build();
         tokio::spawn(write_future);
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        let matches = reader.find("sdf asd");
-        assert_eq!(1, matches.len())
-    }
 
-    // #[test]
-    // fn clear_html_prefix_replace() {
-    //     let a = r#"und Streptokokken<li>trailing"#;
-    //     let trie_terms = vec!["Streptokokken"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let replaced = finder.link(a);
-    //
-    //     assert_eq!(
-    //         "und <a data-autolink=true>Streptokokken</a><li>trailing",
-    //         replaced
-    //     );
-    // }
-    //
-    // #[test]
-    // fn crash() {
-    //     let a = r#"Trinkwasser- Salmonella enterica Serovar Typhi"#;
-    //     let trie_terms = vec![
-    //         "Salmonella enterica",
-    //         "Salmonella enterica Serovar Typhi",
-    //         "Trinkwasser",
-    //         "Salmonellen",
-    //         "Gramnegative",
-    //         "Paratyphus",
-    //         "Salmonella enterica",
-    //         "Typhus",
-    //     ];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let replaced = finder.link(a);
-    //
-    //     assert_eq!(
-    //         r#"<a data-autolink=true>Trinkwasser</a> <a data-autolink=true>Salmonella enterica Serovar Typhi</a>"#,
-    //         replaced
-    //     );
-    // }
-    //
-    // #[test]
-    // fn finds_single_simple_match() {
-    //     let trie_terms = vec!["a", "ba", "bca", "c", "caa"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "abcd bca abcd".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "bca".to_string(),
-    //             end: 7,
-    //             inner_html: vec![],
-    //             size: 3
-    //         }]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn unmatched() {
-    //     let a = r#"die Kehlkopfdiphtherie"#;
-    //
-    //     let trie_terms = vec!["die Kehlkopfdipht", "Kehlkopfdiphtherie"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let replaced = finder.link(a);
-    //
-    //     assert_eq!(
-    //         r#"die <a data-autolink=true>Kehlkopfdiphtherie</a>"#,
-    //         replaced
-    //     );
-    // }
-    //
-    // #[test]
-    // fn clear_html_prefix() {
-    //     let a: Vec<_> = r#"<li>und Streptokokken</li></ul>"#.chars().collect();
-    //     let trie_terms = vec!["Streptokokken"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let matches = finder.find(&a);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "Streptokokken".to_string(),
-    //             end: 20,
-    //             inner_html: vec![],
-    //             size: 13
-    //         }]
-    //     );
-    // }
-    //
-    // #[test]
-    // fn finds_longest_possible_match() {
-    //     let trie_terms = vec!["abc", "def", "abc def"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "asd abc def".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "abc def".to_string(),
-    //             end: 10,
-    //             inner_html: vec![],
-    //             size: 7
-    //         }]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn matches_single_term() {
-    //     let links = vec!["a", "ba", "bca", "c", "caa"];
-    //     let finder = LinkerBuilder::new().build(links);
-    //
-    //     let r_str: Vec<_> = "bca".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "bca".to_string(),
-    //             size: 3,
-    //             end: 2,
-    //             inner_html: vec![]
-    //         }]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn matches_only_once_per_char() {
-    //     let trie_terms = vec!["a", "aa", "aaa", "aaaa", "aaaaa"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "aaaa".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "aaaa".to_string(),
-    //             size: 4,
-    //             end: 3,
-    //             inner_html: vec![]
-    //         }]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn finds_multiple_simple_matches() {
-    //     let trie_terms = vec!["a", "ba", "bca", "c", "caa"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "a abcd bca abcd".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![
-    //             Match {
-    //                 value: "a".to_string(),
-    //                 size: 1,
-    //                 end: 0,
-    //                 inner_html: vec![]
-    //             },
-    //             Match {
-    //                 value: "bca".to_string(),
-    //                 size: 3,
-    //                 end: 9,
-    //                 inner_html: vec![]
-    //             }
-    //         ]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn finds_correct_matches_on_branch_failure() {
-    //     let trie_terms = vec!["abc defgh", "abc", "defij"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "abc defij".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![
-    //             Match {
-    //                 value: "abc".to_string(),
-    //                 size: 3,
-    //                 end: 2,
-    //                 inner_html: vec![]
-    //             },
-    //             Match {
-    //                 value: "defij".to_string(),
-    //                 size: 5,
-    //                 end: 8,
-    //                 inner_html: vec![]
-    //             }
-    //         ]
-    //     )
-    // }
-    //
-    // #[test]
-    // fn finds_match_with_inner_html() {
-    //     let trie_terms = vec!["a", "ba", "bca", "c", "caa"];
-    //     let finder = LinkerBuilder::new().build(trie_terms);
-    //     let r_str: Vec<_> = "bcc <span>bca</span>".chars().collect();
-    //     let matches = finder.find(&r_str);
-    //
-    //     assert_eq!(
-    //         matches,
-    //         vec![Match {
-    //             value: "bca".to_string(),
-    //             size: 9,
-    //             end: 12,
-    //             inner_html: vec![(4, 10)]
-    //         }]
-    //     )
-    // }
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+            let matches = reader.find("peter johnson");
+            if !matches.is_empty() {
+                assert_eq!(3, matches.len());
+                assert_eq!(0, matches[0].index);
+                assert_eq!(1, matches[1].index);
+                assert_eq!(3, matches[2].index);
+                return;
+            }
+        }
+    }
 }
